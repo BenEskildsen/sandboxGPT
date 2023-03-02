@@ -17,7 +17,8 @@ const {
 const {
   useState,
   useMemo,
-  useEffect
+  useEffect,
+  useRef
 } = React;
 function Chat(props) {
   const {
@@ -48,6 +49,16 @@ function Chat(props) {
       }
     });
   }, [curPrompt]);
+  const messagesEndRef = useRef(null);
+  const scrollToBottom = () => {
+    var _messagesEndRef$curre;
+    (_messagesEndRef$curre = messagesEndRef.current) === null || _messagesEndRef$curre === void 0 ? void 0 : _messagesEndRef$curre.scrollIntoView({
+      behavior: "smooth"
+    });
+  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
   return /*#__PURE__*/React.createElement("div", {
     style: {
       width: 800,
@@ -61,9 +72,12 @@ function Chat(props) {
       height: `calc(100% - 60px)`,
       overflowY: 'scroll',
       padding: 4,
+      paddingBottom: 64,
       boxShadow: 'inset -0.3em -0.3em 0.5em rgba(0,0,0,0.3)'
     }
-  }, messages), /*#__PURE__*/React.createElement("div", {
+  }, messages, /*#__PURE__*/React.createElement("div", {
+    ref: messagesEndRef
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 10,
       display: 'flex',

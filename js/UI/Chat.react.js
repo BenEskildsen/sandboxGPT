@@ -5,7 +5,7 @@ const {
 } = require('bens_ui_components');
 const Message = require('./Message.react');
 const {dispatchToServer} = require('../clientToServer');
-const {useState, useMemo, useEffect} = React;
+const {useState, useMemo, useEffect, useRef} = React;
 
 function Chat(props) {
   const {state, getState, dispatch} = props;
@@ -25,6 +25,14 @@ function Chat(props) {
     }});
   }, [curPrompt]);
 
+  const messagesEndRef = useRef(null);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages]);
+
   return (
     <div
       style={{
@@ -40,10 +48,12 @@ function Chat(props) {
           height: `calc(100% - 60px)`,
           overflowY: 'scroll',
           padding: 4,
+          paddingBottom: 64,
           boxShadow: 'inset -0.3em -0.3em 0.5em rgba(0,0,0,0.3)',
         }}
       >
         {messages}
+        <div ref={messagesEndRef} />
       </div>
 
       <div
