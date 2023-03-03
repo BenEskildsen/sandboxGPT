@@ -2,6 +2,7 @@ const React = require('react');
 const {useEffect, useState, useMemo} = React;
 
 const Message = (props) => {
+  const {roleNames} = props;
   const {role, content} = props.message;
 
   return (
@@ -10,7 +11,7 @@ const Message = (props) => {
         whiteSpace: 'pre-wrap',
       }}
     >
-    <b>{role}</b>: {content}
+    <b>{(roleNames && roleNames[role]) ? roleNames[role] : role}</b>: {content}
     </div>
   );
 };

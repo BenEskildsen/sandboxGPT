@@ -9,7 +9,8 @@ const {
   useHotKeyHandler,
   hotKeyReducer,
   useEnhancedReducer,
-  Dropdown
+  Dropdown,
+  Checkbox
 } = require('bens_ui_components');
 const Message = require('./Message.react');
 const {
@@ -21,22 +22,32 @@ const {
   useEffect,
   useRef
 } = React;
+
+/**
+ *  type Conversation = {
+ *    messages: Array<{role: 'system' | 'user' | 'assistant', content: string}>,
+ *    name: string, // the name of this conversation
+ *    params: ?Object, // additional params for GPT API
+ *    placeholder: ?string, // optional placeholder prompt
+ *    roleNames: ?Object, // optional object mapping roles to display names for them
+ *  }
+ */
+
 function Chat(props) {
   const {
-    state,
-    getState,
     dispatch,
     showRole,
     showClear,
     showUsage,
-    placeholder,
-    style
+    style,
+    conversation
   } = props;
   const messages = [];
-  for (let i = 0; i < state.messages.length; i++) {
+  for (let i = 0; i < conversation.messages.length; i++) {
     messages.push( /*#__PURE__*/React.createElement(Message, {
-      message: state.messages[i],
-      key: "message_" + i
+      message: conversation.messages[i],
+      key: "message_" + i,
+      roleNames: conversation.roleNames
     }));
   }
   const [curPrompt, setCurPrompt] = useState('');
@@ -70,11 +81,11 @@ function Chat(props) {
       marginBottom: -8
     },
     rows: 10,
-    placeholder: placeholder ?? "ask the assistant anything",
+    placeholder: conversation.placeholder ?? "ask the assistant anything",
     onChange: setCurPrompt,
     onFocus: () => setShowTextExpander(true),
     onBlur: () => {
-      setTimeout(() => setShowTextExpander(false), 100);
+      setTimeout(() => setShowTextExpander(false), 500);
     }
   }) : /*#__PURE__*/React.createElement(TextField, {
     value: curPrompt,
@@ -82,11 +93,11 @@ function Chat(props) {
       width: '100%',
       height: 25
     },
-    placeholder: placeholder ?? "ask the assistant anything",
+    placeholder: conversation.placeholder ?? "ask the assistant anything",
     onChange: setCurPrompt,
     onFocus: () => setShowTextExpander(true),
     onBlur: () => {
-      setTimeout(() => setShowTextExpander(false), 100);
+      setTimeout(() => setShowTextExpander(false), 500);
     }
   }), showTextExpander ? /*#__PURE__*/React.createElement(Button, {
     label: showBigTextBox ? 'V' : '^',
@@ -99,6 +110,7 @@ function Chat(props) {
       left: 0
     }
   }) : null);
+  const [submitToAPI, setSubmitToAPI] = useState(true);
 
   // press enter to submit
   const [hotKeys, hotKeyDispatch, getHotKeyState] = useEnhancedReducer(hotKeyReducer);
@@ -113,11 +125,11 @@ function Chat(props) {
       press: 'onKeyDown',
       fn: () => {
         if (!showBigTextBox) {
-          submitPrompt(dispatch, role, curPrompt, setCurPrompt);
+          submitPrompt(dispatch, role, conversation, curPrompt, setCurPrompt, submitToAPI);
         }
       }
     });
-  }, [curPrompt, role, showBigTextBox]);
+  }, [curPrompt, role, showBigTextBox, submitToAPI, conversation]);
   return /*#__PURE__*/React.createElement("div", {
     style: {
       width: 800,
@@ -145,7 +157,7 @@ function Chat(props) {
       gap: 10,
       alignItems: 'baseline'
     }
-  }, showRole ? /*#__PURE__*/React.createElement(Dropdown, {
+  }, showRole ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Dropdown, {
     style: {
       width: 70,
       height: 25
@@ -153,10 +165,17 @@ function Chat(props) {
     options: ['user', 'system', 'assistant'],
     selected: role,
     onChange: setRole
-  }) : null, textInput, /*#__PURE__*/React.createElement(Button, {
+  }), /*#__PURE__*/React.createElement(Checkbox, {
+    label: "Submit",
+    checked: submitToAPI,
+    onChange: setSubmitToAPI,
+    style: {
+      display: 'inherit'
+    }
+  })) : null, textInput, /*#__PURE__*/React.createElement(Button, {
     label: "Submit",
     onClick: () => {
-      submitPrompt(dispatch, role, curPrompt, setCurPrompt);
+      submitPrompt(dispatch, role, conversation, curPrompt, setCurPrompt);
     }
   }), showClear ? /*#__PURE__*/React.createElement(Button, {
     label: "Clear",
@@ -169,16 +188,26 @@ function Chat(props) {
     }
   }) : null));
 }
-const submitPrompt = (dispatch, role, curPrompt, setCurPrompt) => {
-  const action = {
+const submitPrompt = (dispatch, role, conversation, curPrompt, setCurPrompt, submitToAPI, params) => {
+  if (submitToAPI) {
+    dispatchToServer({
+      type: 'DO_CONVERSATION',
+      messages: [...conversation.messages, {
+        role,
+        content: curPrompt
+      }],
+      params: conversation.params,
+      conversationName: conversation.name
+    });
+  }
+  dispatch({
     type: 'ADD_MESSAGE',
     message: {
       role,
       content: curPrompt
-    }
-  };
-  dispatch(action);
-  dispatchToServer(action);
+    },
+    conversationName: conversation.name
+  });
   setCurPrompt('');
 };
 module.exports = Chat;
@@ -214,11 +243,10 @@ function Main(props) {
   }, []);
   let content = /*#__PURE__*/React.createElement(Chat, {
     dispatch: dispatch,
-    state: state,
-    getState: getState,
     showRole: true,
     showClear: true,
-    showUsage: true
+    showUsage: true,
+    conversation: getState().conversations.assistant
   });
   return /*#__PURE__*/React.createElement(React.Fragment, null, content, state.modal);
 }
@@ -232,6 +260,9 @@ const {
 } = React;
 const Message = props => {
   const {
+    roleNames
+  } = props;
+  const {
     role,
     content
   } = props.message;
@@ -239,7 +270,7 @@ const Message = props => {
     style: {
       whiteSpace: 'pre-wrap'
     }
-  }, /*#__PURE__*/React.createElement("b", null, role), ": ", content);
+  }, /*#__PURE__*/React.createElement("b", null, roleNames && roleNames[role] ? roleNames[role] : role), ": ", content);
 };
 module.exports = Message;
 },{"react":48}],4:[function(require,module,exports){
@@ -376,14 +407,23 @@ const rootReducer = (state, action) => {
   switch (action.type) {
     case 'ADD_MESSAGE':
       {
-        state.messages.push(action.message);
+        const {
+          message,
+          conversationName,
+          usage
+        } = action;
+        console.log(usage);
+        state.conversations[conversationName].messages.push(action.message);
         return {
           ...state
         };
       }
     case 'CLEAR_CONVERSATION':
       {
-        state.messages = [];
+        const {
+          conversationName
+        } = action;
+        state.conversations[conversationName].messages = [];
         return {
           ...state
         };
@@ -399,7 +439,19 @@ const rootReducer = (state, action) => {
 // Initializations
 const initState = () => {
   return {
-    messages: []
+    conversations: {
+      assistant: {
+        messages: [],
+        name: 'assistant',
+        params: {},
+        placeholder: 'Interview this suspect',
+        roleNames: {
+          system: 'Background',
+          assistant: 'Mrs. Viola Watson',
+          user: 'Detective'
+        }
+      }
+    }
   };
 };
 module.exports = {
@@ -743,12 +795,14 @@ const React = require('react');
  *  label: ?string
  *  checked: boolean
  *  onChange: (value: boolean) => void
+ *  style: ?Object
  */
 function Checkbox(props) {
   const {
     checked,
     label,
-    onChange
+    onChange,
+    style
   } = props;
   const checkbox = /*#__PURE__*/React.createElement("input", {
     type: "checkbox",
@@ -762,7 +816,8 @@ function Checkbox(props) {
   } else {
     return /*#__PURE__*/React.createElement("div", {
       style: {
-        display: 'inline-block'
+        display: 'inline-block',
+        ...style
       }
     }, checkbox, label);
   }

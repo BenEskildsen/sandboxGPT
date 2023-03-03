@@ -4,12 +4,8 @@
     - should only admit it if you have collected all the evidence
 
   - UI
-    - add Clear button
-    - role dropdown
     - usage card
-    - allow bigger input box
 
 
-  - add support for multiple conversations to server
   - turn into a standalone UI component
 

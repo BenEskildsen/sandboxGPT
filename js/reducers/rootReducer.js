@@ -9,11 +9,14 @@ const rootReducer = (state, action) => {
 
   switch (action.type) {
     case 'ADD_MESSAGE': {
-      state.messages.push(action.message);
+      const {message, conversationName, usage} = action;
+      console.log(usage);
+      state.conversations[conversationName].messages.push(action.message);
       return {...state};
     }
     case 'CLEAR_CONVERSATION': {
-      state.messages = [];
+      const {conversationName} = action;
+      state.conversations[conversationName].messages = [];
       return {...state};
     }
     case 'SET_MODAL':
@@ -28,8 +31,13 @@ const rootReducer = (state, action) => {
 // Initializations
 const initState = () => {
   return {
-    messages: [
-    ],
+    conversations: {
+      assistant: {
+        messages: [], name: 'assistant', params: {},
+        placeholder: 'Interview this suspect',
+        roleNames: {system: 'Background', assistant: 'Mrs. Viola Watson', user: 'Detective'},
+      },
+    },
   };
 }
 

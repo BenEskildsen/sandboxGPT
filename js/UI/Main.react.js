@@ -21,8 +21,9 @@ function Main(props) {
   }, []);
 
   let content = <Chat
-    dispatch={dispatch} state={state} getState={getState}
+    dispatch={dispatch}
     showRole={true} showClear={true} showUsage={true}
+    conversation={getState().conversations.assistant}
   />
 
   return (

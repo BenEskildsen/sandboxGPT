@@ -2,22 +2,35 @@ const React = require('react');
 const {
   Button, Modal, Divider, TextArea, TextField,
   useHotKeyHandler, hotKeyReducer, useEnhancedReducer,
-  Dropdown,
+  Dropdown, Checkbox,
 } = require('bens_ui_components');
 const Message = require('./Message.react');
 const {dispatchToServer} = require('../clientToServer');
 const {useState, useMemo, useEffect, useRef} = React;
 
+/**
+ *  type Conversation = {
+ *    messages: Array<{role: 'system' | 'user' | 'assistant', content: string}>,
+ *    name: string, // the name of this conversation
+ *    params: ?Object, // additional params for GPT API
+ *    placeholder: ?string, // optional placeholder prompt
+ *    roleNames: ?Object, // optional object mapping roles to display names for them
+ *  }
+ */
+
 function Chat(props) {
   const {
-    state, getState, dispatch,
+    dispatch,
     showRole, showClear, showUsage,
-    placeholder, style,
+    style, conversation,
   } = props;
 
   const messages = [];
-  for (let i = 0; i < state.messages.length; i++) {
-    messages.push(<Message message={state.messages[i]} key={"message_" + i} />);
+  for (let i = 0; i < conversation.messages.length; i++) {
+    messages.push(<Message
+      message={conversation.messages[i]} key={"message_" + i}
+      roleNames={conversation.roleNames}
+    />);
   }
 
   const [curPrompt, setCurPrompt] = useState('');
@@ -52,11 +65,11 @@ function Chat(props) {
               marginBottom: -8,
             }}
             rows={10}
-            placeholder={placeholder ?? "ask the assistant anything"}
+            placeholder={conversation.placeholder ?? "ask the assistant anything"}
             onChange={setCurPrompt}
             onFocus={() => setShowTextExpander(true)}
             onBlur={() => {
-              setTimeout(() => setShowTextExpander(false), 100);
+              setTimeout(() => setShowTextExpander(false), 500);
             }}
           />
         ) : (
@@ -66,11 +79,11 @@ function Chat(props) {
               width: '100%',
               height: 25,
             }}
-            placeholder={placeholder ?? "ask the assistant anything"}
+            placeholder={conversation.placeholder ?? "ask the assistant anything"}
             onChange={setCurPrompt}
             onFocus={() => setShowTextExpander(true)}
             onBlur={() => {
-              setTimeout(() => setShowTextExpander(false), 100);
+              setTimeout(() => setShowTextExpander(false), 500);
             }}
           />
         )
@@ -89,16 +102,18 @@ function Chat(props) {
     </div>
   );
 
+  const [submitToAPI, setSubmitToAPI] = useState(true);
+
   // press enter to submit
   const [hotKeys, hotKeyDispatch, getHotKeyState] = useEnhancedReducer(hotKeyReducer);
   useHotKeyHandler({dispatch: hotKeyDispatch, getState: getHotKeyState});
   useEffect(() => {
     hotKeyDispatch({type: 'SET_HOTKEY', key: 'enter', press: 'onKeyDown', fn: () => {
       if (!showBigTextBox) {
-        submitPrompt(dispatch, role, curPrompt, setCurPrompt);
+        submitPrompt(dispatch, role, conversation, curPrompt, setCurPrompt, submitToAPI);
       }
     }});
-  }, [curPrompt, role, showBigTextBox]);
+  }, [curPrompt, role, showBigTextBox, submitToAPI, conversation]);
 
   return (
     <div
@@ -134,21 +149,29 @@ function Chat(props) {
         }}
       >
         {showRole ? (
-          <Dropdown
-            style={{
-              width: 70,
-              height: 25,
-            }}
-            options={['user', 'system', 'assistant']}
-            selected={role}
-            onChange={setRole}
-          />
+          <React.Fragment>
+            <Dropdown
+              style={{
+                width: 70,
+                height: 25,
+              }}
+              options={['user', 'system', 'assistant']}
+              selected={role}
+              onChange={setRole}
+            />
+            <Checkbox
+              label={"Submit"}
+              checked={submitToAPI}
+              onChange={setSubmitToAPI}
+              style={{display: 'inherit'}}
+            />
+          </React.Fragment>
         ) : null}
         {textInput}
         <Button
           label="Submit"
           onClick={() => {
-            submitPrompt(dispatch, role, curPrompt, setCurPrompt);
+            submitPrompt(dispatch, role, conversation, curPrompt, setCurPrompt);
           }}
         />
         {showClear ? (
@@ -167,10 +190,22 @@ function Chat(props) {
   );
 }
 
-const submitPrompt = (dispatch, role, curPrompt, setCurPrompt) => {
-  const action = {type: 'ADD_MESSAGE', message: {role, content: curPrompt}};
-  dispatch(action);
-  dispatchToServer(action);
+const submitPrompt = (
+  dispatch, role, conversation,
+  curPrompt, setCurPrompt, submitToAPI,
+  params,
+) => {
+  if (submitToAPI) {
+    dispatchToServer({
+      type: 'DO_CONVERSATION',
+      messages: [...conversation.messages, {role, content: curPrompt}],
+      params: conversation.params, conversationName: conversation.name,
+    });
+  }
+  dispatch({
+    type: 'ADD_MESSAGE', message: {role, content: curPrompt},
+    conversationName: conversation.name,
+  });
   setCurPrompt('');
 };
 
