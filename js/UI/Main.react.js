@@ -20,7 +20,10 @@ function Main(props) {
     setupSocket(dispatch);
   }, []);
 
-  let content = <Chat dispatch={dispatch} state={state} getState={getState} />
+  let content = <Chat
+    dispatch={dispatch} state={state} getState={getState}
+    showRole={true} showClear={true} showUsage={true}
+  />
 
   return (
     <React.Fragment>

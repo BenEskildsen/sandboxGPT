@@ -12,6 +12,10 @@ const rootReducer = (state, action) => {
       state.messages.push(action.message);
       return {...state};
     }
+    case 'CLEAR_CONVERSATION': {
+      state.messages = [];
+      return {...state};
+    }
     case 'SET_MODAL':
     case 'DISMISS_MODAL':
       return modalReducer(state, action);
