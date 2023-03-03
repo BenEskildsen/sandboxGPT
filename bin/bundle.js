@@ -40,10 +40,12 @@ function Chat(props) {
     showClear,
     showUsage,
     style,
-    conversation
+    conversation,
+    showSystem
   } = props;
   const messages = [];
   for (let i = 0; i < conversation.messages.length; i++) {
+    if (conversation.messages[i].role == 'system' && !showSystem) continue;
     messages.push( /*#__PURE__*/React.createElement(Message, {
       message: conversation.messages[i],
       key: "message_" + i,

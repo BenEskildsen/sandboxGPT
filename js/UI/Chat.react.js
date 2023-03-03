@@ -22,11 +22,12 @@ function Chat(props) {
   const {
     dispatch,
     showRole, showClear, showUsage,
-    style, conversation,
+    style, conversation, showSystem,
   } = props;
 
   const messages = [];
   for (let i = 0; i < conversation.messages.length; i++) {
+    if (conversation.messages[i].role == 'system' && !showSystem) continue;
     messages.push(<Message
       message={conversation.messages[i]} key={"message_" + i}
       roleNames={conversation.roleNames}

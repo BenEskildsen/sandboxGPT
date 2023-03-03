@@ -4,8 +4,7 @@
     - should only admit it if you have collected all the evidence
 
   - UI
+    - turn into a standalone UI component
+    - support multiple parallel chats
     - usage card
-
-
-  - turn into a standalone UI component
 
