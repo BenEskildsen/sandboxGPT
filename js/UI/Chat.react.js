@@ -172,14 +172,14 @@ function Chat(props) {
         <Button
           label="Submit"
           onClick={() => {
-            submitPrompt(dispatch, role, conversation, curPrompt, setCurPrompt);
+            submitPrompt(dispatch, role, conversation, curPrompt, setCurPrompt, submitToAPI);
           }}
         />
         {showClear ? (
           <Button
             label="Clear"
             onClick={() => {
-              const action = {type: "CLEAR_CONVERSATION"};
+              const action = {type: "CLEAR_CONVERSATION", conversationName: conversation.name};
               dispatch(action);
               dispatchToServer(action);
             }}

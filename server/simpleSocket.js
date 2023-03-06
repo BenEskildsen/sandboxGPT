@@ -119,7 +119,8 @@ const initIO = (io, sessions, socketClients, clientToSession) => {
           });
         }
         case 'CLEAR_CONVERSATION': {
-          session.messages = [];
+          const {conversationName} = action;
+          session.conversations[conversationName].messages = [];
           emitToSession(session, socketClients, action, clientID);
         }
         default:

@@ -23,6 +23,7 @@ function Main(props) {
   let content = <Chat
     dispatch={dispatch}
     showRole={true} showClear={true} showUsage={true}
+    showSystem={true}
     conversation={getState().conversations.assistant}
   />
 

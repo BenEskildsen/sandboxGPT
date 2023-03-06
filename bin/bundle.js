@@ -177,13 +177,14 @@ function Chat(props) {
   })) : null, textInput, /*#__PURE__*/React.createElement(Button, {
     label: "Submit",
     onClick: () => {
-      submitPrompt(dispatch, role, conversation, curPrompt, setCurPrompt);
+      submitPrompt(dispatch, role, conversation, curPrompt, setCurPrompt, submitToAPI);
     }
   }), showClear ? /*#__PURE__*/React.createElement(Button, {
     label: "Clear",
     onClick: () => {
       const action = {
-        type: "CLEAR_CONVERSATION"
+        type: "CLEAR_CONVERSATION",
+        conversationName: conversation.name
       };
       dispatch(action);
       dispatchToServer(action);
@@ -248,6 +249,7 @@ function Main(props) {
     showRole: true,
     showClear: true,
     showUsage: true,
+    showSystem: true,
     conversation: getState().conversations.assistant
   });
   return /*#__PURE__*/React.createElement(React.Fragment, null, content, state.modal);
@@ -2153,8 +2155,9 @@ const TextArea = props => {
       if (props.onFocus) onFocus(ev.target.value);
     },
     rows: rows,
-    cols: cols
-  }, value);
+    cols: cols,
+    value: value
+  });
 };
 module.exports = TextArea;
 },{"react":48}],30:[function(require,module,exports){
