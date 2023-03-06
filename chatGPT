@@ -1,0 +1,16 @@
+#!/opt/homebrew/bin/node
+
+const {Configuration, OpenAIApi} = require("openai");
+
+const configuration = new Configuration({
+  apiKey: require('./.secrets').gptAPIKey,
+});
+openAI = new OpenAIApi(configuration);
+
+openAI.createChatCompletion({
+  model: 'gpt-3.5-turbo',
+  messages: [{role: 'user', content: process.argv[2]}]
+}).then((completion) => {
+  const responseMessage = completion.data.choices[0].message.content.trim();
+  console.log(responseMessage);
+});

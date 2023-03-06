@@ -1,4 +1,7 @@
 
+  - fix clear button
+  - fix clearing large change on enter
+
   - model tuning
     - don't accept as evidence things that didn't happen
     - should only admit it if you have collected all the evidence
