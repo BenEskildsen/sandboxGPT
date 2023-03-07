@@ -176,14 +176,23 @@ function Chat(props) {
           }}
         />
         {showClear ? (
-          <Button
-            label="Clear"
-            onClick={() => {
-              const action = {type: "CLEAR_CONVERSATION", conversationName: conversation.name};
-              dispatch(action);
-              dispatchToServer(action);
-            }}
-          />
+          <React.Fragment>
+            <Button
+              label="Undo"
+              onClick={() => {
+                const action = {type: "UNDO", conversationName: conversation.name};
+                dispatch(action);
+              }}
+            />
+            <Button
+              label="Clear"
+              onClick={() => {
+                const action = {type: "CLEAR_CONVERSATION", conversationName: conversation.name};
+                dispatch(action);
+                dispatchToServer(action);
+              }}
+            />
+          </React.Fragment>
         ) : null}
       </div>
 

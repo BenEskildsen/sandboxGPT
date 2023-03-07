@@ -19,6 +19,11 @@ const rootReducer = (state, action) => {
       state.conversations[conversationName].messages = [];
       return {...state};
     }
+    case 'UNDO': {
+      const {conversationName} = action;
+      state.conversations[conversationName].messages.pop();
+      return {...state};
+    }
     case 'SET_MODAL':
     case 'DISMISS_MODAL':
       return modalReducer(state, action);
@@ -33,7 +38,8 @@ const initState = () => {
   return {
     conversations: {
       assistant: {
-        messages: [], name: 'assistant', params: {},
+        messages: [...config.prompts.assistant],
+        name: 'assistant', params: {},
         placeholder: 'Interview this suspect',
         roleNames: {system: 'Background', assistant: 'Mrs. Viola Watson', user: 'Detective'},
       },
